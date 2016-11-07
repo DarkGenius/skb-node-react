@@ -9,9 +9,41 @@ app.get('/', (req, res) => {
   });
 });
 
-app.get('/2A', (req, res) => {
-    const sum = (~~req.query.a + ~~req.query.b).toString();
-    res.send(sum);
+app.get('/2B', (req, res) => {
+    let fullname = req.query.fullname;
+    let result = 'Invalid fullname';
+    if (fullname) {
+      // const re = /\p{Lu}\p{Ll}*/g;
+      // let data = [];
+      // let r;
+      // while (r = re.exec(fullname)) {
+      //   data.push(r[0]);
+      // }
+      //fullname = fullname.replace(/\//g, ' ');
+      console.log(`fullname=${fullname}`);
+      let data = fullname.split(' ')
+        .filter((v) => v.trim().length > 0)
+        .map((v) => v[0].toLocaleUpperCase() + v.substr(1).toLocaleLowerCase());
+      console.log(JSON.stringify(data));
+
+      if ((data.length > 0) && (data.length < 4)) {
+        const testval = data.map((v) => {
+          let test = v.split('').reduce((p, c, i) => {
+            return p +  +!(c.match(/.*[\d_\/].*/) == null);
+          }, 0);
+          console.log(`val=${v}, test=${test}`);
+          return test;
+        }).reduce((p, c)=>p + c, 0);
+        console.log(`testval=${testval}`);
+        if (testval == 0) {
+          const lastname = data.pop();
+          result = lastname + ' ' + data.map((val) => val[0] + '.').join(' ');
+        }
+      }
+
+    }
+
+    res.send(result.trim());
   });
 
 app.listen(3000, () => {
