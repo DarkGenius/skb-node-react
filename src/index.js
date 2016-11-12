@@ -46,6 +46,21 @@ app.get('/2B', (req, res) => {
     res.send(result.trim());
   });
 
+app.get('/2C', (req, res) => {
+    let result = 'Invalid username';
+    let username = req.query.username;
+
+    if (username) {
+      console.log(`username=${username}`);
+      const re = /^((https?:)?\/\/)?([^\/]*\/)?@?([^\s\?\/]+)([\?\/].*)?$/;
+      const m = username.match(re);
+      console.log(m);
+      if (m[4]) result = `@${m[4]}`;
+    }
+
+    res.send(result);
+  });
+
 app.listen(3000, () => {
   console.log('Your app listening on port 3000!');
 });
