@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 
+let fs = require('fs');
+var fetch = require('node-fetch');
+
 const app = express();
 app.use(cors());
 app.get('/', (req, res) => {
@@ -60,6 +63,65 @@ app.get('/2C', (req, res) => {
 
     res.send(result);
   });
+
+app.get(/^\/3A\/.*$/, async (req, res) => {
+  let result = {};
+  let data = await getPCJSON();
+  const path = req.path.split("/").slice(2);
+  let r;
+  if (path.length == 1 && path[0] == '') res.json(data);
+  else {
+    if (data.hdd && path.length == 1 && path[0] == "volumes"){
+      let volume = data.hdd.reduce((prev, curr) => {
+        const letter = curr["volume"];
+        prev[letter] = ~~prev[letter] + curr["size"];
+        return prev;
+      }, {});
+      Object.keys(volume).forEach((key) => {
+        volume[key] += "B";
+      });
+      data["volumes"] = volume;
+    }
+
+    r = path.reduce((prev, curr) => {
+      if (prev === undefined) return undefined;
+      if (prev.hasOwnProperty(curr) && (prev.constructor()[curr] === undefined)) return prev[curr];
+      if (curr == "") return prev;
+      return undefined;
+    }, data)
+    if (r === undefined){
+      res.status(404).send("Not Found");
+    }
+    else {
+      result = r;
+      res.json(result);
+    }
+  }
+})
+
+// get data for task 3A
+let getPCJSON = async () => {
+  let pc = {}
+  const pcUrl = 'https://gist.githubusercontent.com/isuvorov/ce6b8d87983611482aac89f6d7bc0037/raw/pc.json';
+  const fname = 'pc.json';
+  if (!fs.existsSync(fname)) {
+    fetch(pcUrl)
+    .then(async (res) => {
+      pc = await res.json();
+      let txt = JSON.stringify(pc);
+      fs.writeFileSync(fname, txt);
+    })
+    .catch(err => {
+      console.log('error get pc.json', err);
+    });
+  }
+  else {
+    pc = JSON.parse(fs.readFileSync(fname));
+    console.log("read data from file");
+  }
+  return pc
+}
+
 
 app.listen(3000, () => {
   console.log('Your app listening on port 3000!');
