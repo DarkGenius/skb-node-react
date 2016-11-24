@@ -4,6 +4,8 @@ import cors from 'cors';
 let fs = require('fs');
 var fetch = require('node-fetch');
 
+var router3B = require('./router3B');
+
 const app = express();
 app.use(cors());
 app.get('/', (req, res) => {
@@ -188,12 +190,12 @@ app.get('/2D', (req, res) => {
       }
     }
 
-
   }
 
   res.send(result);
 })
 
+app.use('/3B', router3B);
 
 app.listen(3000, () => {
   console.log('Your app listening on port 3000!');
