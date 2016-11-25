@@ -249,6 +249,46 @@ app.get('/2X', (req, res) => {
 
 app.use('/3B', router3B);
 
+app.get('/3C/:metric?', (req, res) => {
+  const fname = "pokemons.json";
+  const metric = req.params.metric || "default";
+  let limit = +req.query.limit || 20;
+  let offset = +req.query.offset || 0;
+
+  console.log(`metric=${metric}\nlimit=${limit}\noffset=${offset}`);
+
+  const defSort = (a,b) => {
+    if (a.name > b.name) return 1;
+    else if (a.name < b.name) return -1;
+    else return 0;
+  };
+
+  const makeSort = (func, desc=false) => (a,b) => {
+   let result = (func(a)-func(b)) * (desc ? 1 : -1);
+   if (result == 0) result = defSort(a, b);
+   return result;
+  }
+
+
+  const sorts = {
+    "default": defSort,
+    "fat": makeSort((pokemon) => (pokemon.weight / pokemon.height)),
+    "angular": makeSort((pokemon) => (pokemon.weight / pokemon.height), true),
+    "heavy": makeSort((pokemon) => pokemon.weight),
+    "light": makeSort((pokemon) => pokemon.weight, true),
+    "huge": makeSort((pokemon) => pokemon.height),
+    "micro": makeSort((pokemon) => pokemon.height, true)
+  };
+
+  let data = JSON.parse(fs.readFileSync(fname));
+
+  data.sort(sorts[metric]);
+  console.log(data[0]);
+  data = data.map((pokemon) => pokemon.name);
+
+  res.json(data.slice(offset, offset+limit));
+})
+
 app.listen(3000, () => {
   console.log('Your app listening on port 3000!');
 });
