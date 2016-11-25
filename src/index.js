@@ -193,7 +193,59 @@ app.get('/2D', (req, res) => {
   }
 
   res.send(result);
-})
+});
+
+let func;
+
+app.get('/2X', (req, res) => {
+    let i = +req.query.i;
+
+    let dict = {
+      0: 1,
+      1: 18,
+      2: 243,
+      3: 3240,
+      4: 43254,
+      5: 577368,
+      6: 7706988,
+      7: 102876480,
+      8: 1373243544,
+      9: 18330699168,
+      10: 244686773808,
+      11: 3266193870720,
+      12: 43598688377184,
+      13: 581975750199168,
+      14: 7768485393179328,
+      15: 103697388221736960,
+      16: 1384201395738071424,
+      17: 18476969736848122368,
+      18: 246639261965462754048
+    }
+
+    let interpolate = (dict) => {
+      const x = Object.keys(dict);
+      const n = x.length;
+      let terms = []
+      for (let i=0; i<n; i++){
+        let f = (t) => 1;
+        for (let j=0; j<n; j++){
+          if (j == i) continue;
+          const g = f.bind({});
+          f = (t) => g(t)*(t-x[j])/(x[i]-x[j]);
+        }
+        terms.push((t) => dict[x[i]]*f(t));
+      }
+      return terms.reduce((acc, curr, i) => {
+        const g = acc.bind({});
+        return (t) => g(t) + curr(t);
+      } , (t) => 0);
+    };
+
+    if (!func) func = interpolate(dict);
+
+    res.send(""+func(i));
+
+  });
 
 app.use('/3B', router3B);
 
